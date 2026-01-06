@@ -57,8 +57,8 @@ bspc rule -a Chromium desktop='^2' follow=on
 
 
 # Init-Daemons
-command -v sxhkd && sxhkd -c "$HOME/.config/bspwm/sxhkd/sxhkdrc" 
-command -v polybar && pkill polybar && polybar &
+command -v sxhkd && sxhkd -c "$HOME/.config/bspwm/sxhkd/sxhkdrc" &
+~/.config/polybar/launch.sh &
 command -v dunst && dunst &
 command -v qbittorrent && qbittorrent &
 command -v easyeffects && easyeffects &
