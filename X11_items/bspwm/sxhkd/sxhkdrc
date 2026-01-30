@@ -4,11 +4,11 @@ super + Return
 
 # Brave
 super + b
-        brave
+        brave --enable-features=AcceleratedVideoDecodeLinuxZeroCopyGL,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoEncoder
 
 # Brave
 super + c
-        chromium
+        chromium --enable-features=AcceleratedVideoDecodeLinuxZeroCopyGL,AcceleratedVideoDecodeLinuxGL,AcceleratedVideoEncoder
 
 # Thunar
 super + e
@@ -84,4 +84,4 @@ XF86AudioMute
 
 # Clipboard history
 super + v
-    clipcat-menu
+    clipcat-menu --rofi-menu-length=9
