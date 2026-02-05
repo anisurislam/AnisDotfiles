@@ -84,4 +84,5 @@ XF86AudioMute
 
 # Clipboard history
 super + v
-    clipcat-menu --rofi-menu-length=9
+	rofi -modi "clipboard:greenclip print" -show clipboard -run-command '{cmd}'
+
