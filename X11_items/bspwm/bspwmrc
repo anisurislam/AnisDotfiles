@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ## Monitor Resolution
-xrandr --output HDMI1 --mode 1920x1080 --rate 100
+xrandr --output HDMI-1 --mode 1920x1080 --rate 100
 
 # BSPWM Configuration
 _bc() {
@@ -63,5 +63,5 @@ command -v dunst && dunst &
 command -v picom && picom --config ~/.config/picom/picom.conf &
 command -v qbittorrent && qbittorrent &
 command -v easyeffects && easyeffects &
-command -v feh && feh --bg-scale ~/Pictures/wallpapers/178343.jpg &
-command -v clipcatd && clipcatd &
+command -v feh && feh --bg-scale ~/Pictures/wallpapers/wallpaper.jpg &
+command -v greenclip && greenclip daemon &
