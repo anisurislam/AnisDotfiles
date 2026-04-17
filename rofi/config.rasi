@@ -1,4 +1,7 @@
-@theme "/usr/share/rofi/themes/Arc-Dark.rasi"
+/* ~/.config/rofi/config.rasi
+   Loads the one-dark theme from the same folder */
+@theme "~/.config/rofi/themes/mytheme.rasi"
+
 configuration {
-    click-to-exit: true;
+
 }
