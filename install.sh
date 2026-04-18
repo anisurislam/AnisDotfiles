@@ -2,17 +2,23 @@
 
 set -euo pipefail
 
+# Setting up logging
+LOGFILE="$HOME/install-$(date +%s).log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
 echo "####################################"
 echo "STARTING INSTALLATION SCRIPT"
 echo "####################################"
 
+
 # Variables
 session_type=""
 window_manager=""
-
 info()  { printf "[INFO] %s\n" "$*"; }
 warn()  { printf "[WARN] %s\n" "$*"; }
 error() { printf "[ERROR] %s\n" "$*"; exit 1; }
+
+info "Logging to $LOGFILE"
 
 # Selecting session type
 while true; do
@@ -127,7 +133,7 @@ command -v paru >/dev/null 2>&1 || error "paru is required but not installed"
 
 
 # Defining package lists
-COMMON_PKGS=(kitty git neovim rofi ranger firefox mpv flameshot htop rsync)
+COMMON_PKGS=(kitty git neovim rofi ranger firefox mpv flameshot htop rsync sddm)
 X11_PKGS=(xorg-xinit xorg-server)
 WAYLAND_PKGS=(wayland-protocols wl-clipboard mako swaybg waybar)
 
@@ -172,6 +178,48 @@ case "$WINDOW_MANAGER" in
     ;;
 esac
 
+
+# Combining package groups
+if [[ "$SESSION_TYPE" == "x11" ]]; then
+    PKGS=("${COMMON_PKGS[@]}" "${X11_PKGS[@]}" "${WM_PKGS[@]}")
+else
+    PKGS=("${COMMON_PKGS[@]}" "${WAYLAND_PKGS[@]}" "${WM_PKGS[@]}")
+fi
+# Removing duplicates
+mapfile -t PKGS < <(printf "%s\n" "${PKGS[@]}" | sort -u)
+
+# Showing the list of packages and asking for confirmation
+# Initializing install packages function
+install_packages(){
+    if [[ ${#PKGS[@]} -gt 0 ]]; then
+        echo
+        info "The following packages will be installed via pacman:"
+        printf '  %s\n' "${PKGS[@]}"
+        echo
+        read -rp "Proceed with pacman -Syu --needed for these packages? [y/N]: " confirm_pkgs
+        case "${confirm_pkgs,,}" in
+            y|yes)
+                echo
+                info "Running: sudo pacman -Syu --needed ${PKGS[*]}"
+                sudo pacman -Syu --needed "${PKGS[@]}"
+                
+                if [[ ${#WM_AUR_PKGS[@]} -gt 0 ]]; then
+                    echo
+                    info "Installing AUR packages via paru:"
+                    printf '  %s\n' "${WM_AUR_PKGS[@]}"
+                    paru -S --needed "${WM_AUR_PKGS[@]}"
+                fi
+            ;;
+            *)
+                info "Package installation skipped by user."
+            ;;
+        esac
+    else
+        info "No packages to install for the selected window manager."
+    fi
+    
+}
+
 # Initializing install dotfiles function
 install_dotfiles() {
     local SRC="$DOTFILES_SRC"
@@ -200,42 +248,20 @@ install_dotfiles() {
     info "Dotfiles installed successfully."
 }
 
+# Running the installation functions to intsall packages and dotfiles
+install_packages
+install_dotfiles
 
-# Combining package groups
-if [[ "$SESSION_TYPE" == "x11" ]]; then
-    PKGS=("${COMMON_PKGS[@]}" "${X11_PKGS[@]}" "${WM_PKGS[@]}")
-else
-    PKGS=("${COMMON_PKGS[@]}" "${WAYLAND_PKGS[@]}" "${WM_PKGS[@]}")
-fi
-# Removing duplicates
-mapfile -t PKGS < <(printf "%s\n" "${PKGS[@]}" | sort -u)
-
-# Showing the list of packages and asking for confirmation
-if [[ ${#PKGS[@]} -gt 0 ]]; then
+final_tweaks () {
     echo
-    info "The following packages will be installed via pacman:"
-    printf '  %s\n' "${PKGS[@]}"
-    echo
-    read -rp "Proceed with pacman -Syu --needed for these packages? [y/N]: " confirm_pkgs
-    case "${confirm_pkgs,,}" in
-        y|yes)
-            echo
-            info "Running: sudo pacman -Syu --needed ${PKGS[*]}"
-            sudo pacman -Syu --needed "${PKGS[@]}"
-            
-            if [[ ${#WM_AUR_PKGS[@]} -gt 0 ]]; then
-                echo
-                info "Installing AUR packages via paru:"
-                printf '  %s\n' "${WM_AUR_PKGS[@]}"
-                paru -S --needed "${WM_AUR_PKGS[@]}"
-            fi
-            install_dotfiles
-        ;;
-        *)
-            info "Package installation skipped by user."
-        ;;
-    esac
-else
-    info "No packages to install for the selected window manager."
-fi
+    info "Running final tweaks..."
+    sudo systemctl enable sddm
+    sudo systemctl enable NetworkManager
+    info "Final tweaks completed."    
+}
+final_tweaks
 
+echo "####################################"
+echo "INSTALLATION COMPLETE!"
+echo "Reboot your system to start using your new setup."
+echo "####################################"
