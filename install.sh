@@ -133,9 +133,9 @@ install_paru
 command -v paru >/dev/null 2>&1 || error "paru is required but not installed"
 
 # Defining package lists
-COMMON_PKGS=(kitty git neovim rofi ranger firefox mpv flameshot htop rsync sddm networkmanager)
-X11_PKGS=(xorg-xinit xorg-server)
-WAYLAND_PKGS=(wayland-protocols wl-clipboard mako swaybg waybar)
+COMMON_PKGS=(kitty git neovim rofi yazi firefox mpv viewnior flameshot htop rsync sddm networkmanager)
+X11_PKGS=(xorg-xinit xorg-server lxappearance)
+WAYLAND_PKGS=(wayland-protocols wl-clipboard mako swaybg waybar nwg-look)
 
 # Installing packages based on the selected window manager
 case "$WINDOW_MANAGER" in
