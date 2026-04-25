@@ -50,7 +50,7 @@ echo "Selected session type: $session_type"
 if [[ "$session_type" == "x11" ]]; then
     while true; do
         echo
-        echo "Select a X11 Window Manager:"
+        echo "Select an X11 Window Manager:"
         echo "1) awesomewm"
         echo "2) qtile"
         echo "3) bspwm"
@@ -133,7 +133,7 @@ install_paru
 command -v paru >/dev/null 2>&1 || error "paru is required but not installed"
 
 # Defining package lists
-COMMON_PKGS=(kitty git neovim rofi yazi firefox mpv viewnior flameshot htop rsync sddm networkmanager)
+COMMON_PKGS=(kitty git neovim rofi yazi firefox mpv viewnior flameshot htop rsync sddm networkmanager pavucontrol ttf-jetbrains-mono-nerd zoxide)
 X11_PKGS=(xorg-xinit xorg-server lxappearance)
 WAYLAND_PKGS=(wayland-protocols wl-clipboard mako swaybg waybar nwg-look)
 
@@ -212,7 +212,7 @@ install_packages() {
                 echo
                 info "Installing AUR packages via paru:"
                 printf '  %s\n' "${WM_AUR_PKGS[@]}"
-                paru -S --needed "${WM_AUR_PKGS[@]}"
+                paru -S --needed --noconfirm "${WM_AUR_PKGS[@]}"
             fi
             ;;
         *)
@@ -233,8 +233,8 @@ install_dotfiles() {
     fi
 
     for entry in "${DOTFILES_LIST[@]}"; do
-        local NAME="${entry%%:*}"   
-        local SRC="${entry##*:}"    
+        local NAME="${entry%%:*}"
+        local SRC="${entry##*:}"
         local DEST="$HOME/.config/$NAME"
 
         if [[ ! -d "$SRC" ]]; then
@@ -253,9 +253,68 @@ install_dotfiles() {
     done
 }
 
+# Initializing install zsh function
+install_zsh() {
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        info "Oh My Zsh is already installed."
+        return
+    fi
+    info "Installing Zsh..."
+    sudo pacman -S --needed --noconfirm zsh git curl
+
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        info "Installing Oh My Zsh..."
+        RUNZSH=no CHSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    else
+        info "Oh My Zsh already installed, skipping..."
+    fi
+
+    # Plugins
+    ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+    clone_if_missing() {
+        local repo="$1"
+        local dest="$2"
+
+        if [[ -d "$dest" ]]; then
+            info "Plugin already exists, skipping: $dest"
+        else
+            git clone "$repo" "$dest"
+        fi
+    }
+
+    clone_if_missing "https://github.com/zsh-users/zsh-autosuggestions.git" "$ZSH_CUSTOM/plugins/zsh-autosuggestions"
+    clone_if_missing "https://github.com/zsh-users/zsh-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
+    clone_if_missing "https://github.com/zdharma-continuum/fast-syntax-highlighting.git" "$ZSH_CUSTOM/plugins/fast-syntax-highlighting"
+    clone_if_missing "https://github.com/marlonrichert/zsh-autocomplete.git" "$ZSH_CUSTOM/plugins/zsh-autocomplete"
+
+    if grep -q "^plugins=" "$HOME/.zshrc"; then
+        sed -i 's/^plugins=.*/plugins=(git zsh-autosuggestions zsh-syntax-highlighting)/' "$HOME/.zshrc"
+    else
+        echo "plugins=(git zsh-autosuggestions zsh-syntax-highlighting)" >>"$HOME/.zshrc"
+    fi
+
+    # Adding custom Zsh configuration
+    cat <<-'EOF' >>"$HOME/.zshrc"
+	    # Custom Zsh configuration
+	    eval "$(zoxide init zsh)"
+	    export EDITOR="nvim"
+	    alias vim="nvim"
+	    alias cd="z"
+
+	EOF
+
+    # Setting Zsh as default shell
+    if [[ "$SHELL" != "$(command -v zsh)" ]]; then
+        info "Setting Zsh as default shell..."
+        chsh -s "$(command -v zsh)" || warn "Failed to change default shell"
+    fi
+}
+
 # Running the installation functions to intsall packages and dotfiles
 install_packages
 install_dotfiles
+install_zsh
 
 final_tweaks() {
     echo
