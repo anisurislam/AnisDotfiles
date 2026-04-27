@@ -133,7 +133,7 @@ install_paru
 command -v paru >/dev/null 2>&1 || error "paru is required but not installed"
 
 # Defining package lists
-COMMON_PKGS=(kitty git neovim rofi yazi firefox mpv viewnior flameshot htop rsync sddm networkmanager pavucontrol ttf-jetbrains-mono-nerd zoxide)
+COMMON_PKGS=(kitty git neovim rofi yazi firefox mpv viewnior flameshot htop rsync sddm networkmanager pavucontrol ttf-jetbrains-mono-nerd zoxide bat)
 X11_PKGS=(xorg-xinit xorg-server lxappearance)
 WAYLAND_PKGS=(wayland-protocols wl-clipboard mako swaybg waybar nwg-look)
 
@@ -171,9 +171,10 @@ hyprland)
     ;;
 mangowm)
     WM_PKGS=(cliphist)
-    WM_AUR_PKGS=(mangowm)
+    WM_AUR_PKGS=(mangowm catppuccin-gtk-theme-mocha)
     DOTFILES_LIST=(
         "mango:./Wayland_items/mango"
+        "rofi:./rofi"
     )
     ;;
 *)
@@ -301,6 +302,7 @@ install_zsh() {
 	    export EDITOR="nvim"
 	    alias vim="nvim"
 	    alias cd="z"
+        alias cat="bat"
 
 	EOF
 
